@@ -1,4 +1,4 @@
-import { User, Mail, Phone, FileText, Hash } from "lucide-react";
+import { User, Mail, Phone, FileText, Hash, Edit2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
@@ -27,23 +27,32 @@ export function Profile() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <Label htmlFor="name" className="flex items-center gap-2">
                                 <User className="size-4" /> Name
                             </Label>
                             <Input id="name" defaultValue={user.name} readOnly />
+                            <Button size="sm" variant="ghost" className="absolute right-0 top-0">
+                                <Edit2 className="size-4" />
+                            </Button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <Label htmlFor="email" className="flex items-center gap-2">
                                 <Mail className="size-4" /> Email
                             </Label>
                             <Input id="email" type="email" defaultValue={user.email} readOnly />
+                            <Button size="sm" variant="ghost" className="absolute right-0 top-0">
+                                <Edit2 className="size-4" />
+                            </Button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <Label htmlFor="phone" className="flex items-center gap-2">
                                 <Phone className="size-4" /> Phone Number
                             </Label>
                             <Input id="phone" type="tel" defaultValue={user.phone} readOnly />
+                            <Button size="sm" variant="ghost" className="absolute right-0 top-0">
+                                <Edit2 className="size-4" />
+                            </Button>
                         </div>
                     </div>
                 </CardContent>
@@ -54,18 +63,24 @@ export function Profile() {
                     <CardTitle>GST Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
+                    <div className="grid gap-4">
+                        <div className="space-y-2 relative">
                             <Label htmlFor="gstin" className="flex items-center gap-2">
                                 <FileText className="size-4" /> GSTIN
                             </Label>
                             <Input id="gstin" defaultValue={user.gstin} readOnly />
+                            <Button size="sm" variant="ghost" className="absolute right-0 top-0">
+                                <Edit2 className="size-4" />
+                            </Button>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 relative">
                             <Label htmlFor="invoiceNum" className="flex items-center gap-2">
-                                <Hash className="size-4" /> Last Invoice Number
+                                <Hash className="size-4" /> Invoice Number
                             </Label>
                             <Input id="invoiceNum" defaultValue={user.invoiceNum} readOnly />
+                            <Button size="sm" variant="ghost" className="absolute right-0 top-0">
+                                <Edit2 className="size-4" />
+                            </Button>
                         </div>
                     </div>
                 </CardContent>

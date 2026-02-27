@@ -41,7 +41,7 @@ export function Dashboard() {
           <p className="text-3xl font-bold text-[#8B4513]">{stats.receiptsThisMonth}</p>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-[#FFCCBC] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <Card className="p-6 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">Tax Credits Saved</p>
             <TrendingUp className="size-5 text-[#8B4513]" />
@@ -49,22 +49,22 @@ export function Dashboard() {
           <p className="text-3xl font-bold text-[#8B4513]">{stats.totalSaved}</p>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-green-500 bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <Card className="p-6 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">Compliance Score</p>
-            <CheckCircle2 className="size-5 text-green-600" />
+            <CheckCircle2 className="size-5 text-[#8B4513]" />
           </div>
-          <p className="text-3xl font-bold text-green-600">{stats.complianceScore}%</p>
-          <p className="text-xs text-green-600 mt-1">You're 100% compliant! 🎉</p>
+          <p className="text-3xl font-bold text-[#8B4513]">{stats.complianceScore}%</p>
+          <p className="text-xs text-[#8B4513] mt-1">You're 100% compliant! 🎉</p>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-orange-500 bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <Card className="p-6 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">Next Deadline</p>
-            <Clock className="size-5 text-orange-600" />
+            <Clock className="size-5 text-[#8B4513]" />
           </div>
-          <p className="text-lg font-bold text-orange-600">{stats.nextDeadline}</p>
-          <p className="text-xs text-orange-600 mt-1">21 days remaining</p>
+          <p className="text-lg font-bold text-[#8B4513]">{stats.nextDeadline}</p>
+          <p className="text-xs text-[#8B4513] mt-1">21 days remaining</p>
         </Card>
       </div>
 
@@ -87,7 +87,7 @@ export function Dashboard() {
             asChild
             size="lg"
             variant="outline"
-            className="border-white text-white hover:bg-white/20 h-auto py-6"
+            className="border-white text-[#8B4513] hover:bg-[#FFCCBC] h-auto py-6"
           >
             <Link to="/preview" className="flex flex-col items-center gap-2">
               <FileText className="size-8" />
@@ -99,7 +99,7 @@ export function Dashboard() {
             asChild
             size="lg"
             variant="outline"
-            className="border-white text-white hover:bg-white/20 h-auto py-6"
+            className="border-white text-[#8B4513] hover:bg-[#FFCCBC] h-auto py-6"
           >
             <Link to="/export" className="flex flex-col items-center gap-2">
               <Calendar className="size-8" />

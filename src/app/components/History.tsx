@@ -111,21 +111,21 @@ export function History() {
           <p className="text-3xl font-bold text-[#8B4513]">{totalFilings}</p>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-[#FFCCBC] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <Card className="p-6 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
           <p className="text-sm text-gray-600 mb-1">Total Receipts</p>
           <p className="text-3xl font-bold text-[#8B4513]">{totalReceipts}</p>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-blue-500 bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <Card className="p-6 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
           <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
-          <p className="text-3xl font-bold text-blue-600">
+          <p className="text-3xl font-bold text-[#8B4513]">
             ₹{(totalRevenue / 1000).toFixed(0)}K
           </p>
         </Card>
 
-        <Card className="p-6 border-l-4 border-l-green-500 bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <Card className="p-6 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
           <p className="text-sm text-gray-600 mb-1">Total GST</p>
-          <p className="text-3xl font-bold text-green-600">
+          <p className="text-3xl font-bold text-[#8B4513]">
             ₹{(totalGST / 1000).toFixed(0)}K
           </p>
         </Card>
