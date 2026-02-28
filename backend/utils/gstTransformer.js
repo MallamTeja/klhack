@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = process.env.GEMINI_API_KEY;
+const API_KEY = "[ENCRYPTION_KEY]";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const PROMPT_TEMPLATE = `You are an assistant that prepares GST return JSON files for upload to the Indian GST portal.
