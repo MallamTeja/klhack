@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = "[ENCRYPTION_KEY]";
+const API_KEY = process.env.geminiapi;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const PROMPT_TEMPLATE = `You are an assistant that prepares GST return JSON files for upload to the Indian GST portal.
@@ -55,34 +55,34 @@ Here is the input data you must transform (business profile and invoices):
 {{INPUT_DATA_JSON}}`;
 
 export const generateGSTReturnJSON = async (businessData, invoicesData) => {
-    try {
-        const inputData = {
-            businessProfile: businessData,
-            invoices: invoicesData
-        };
-        const inputStr = JSON.stringify(inputData, null, 2);
-        const prompt = PROMPT_TEMPLATE.replace("{{INPUT_DATA_JSON}}", inputStr);
+  try {
+    const inputData = {
+      businessProfile: businessData,
+      invoices: invoicesData
+    };
+    const inputStr = JSON.stringify(inputData, null, 2);
+    const prompt = PROMPT_TEMPLATE.replace("{{INPUT_DATA_JSON}}", inputStr);
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // or "gemini-pro"
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // or "gemini-pro"
 
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        let text = response.text();
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    let text = response.text();
 
-        // Remove markdown formatting if present
-        if (text.startsWith("\`\`\`json")) {
-            text = text.substring(7);
-        }
-        if (text.startsWith("\`\`\`")) {
-            text = text.substring(3);
-        }
-        if (text.endsWith("\`\`\`")) {
-            text = text.substring(0, text.length - 3);
-        }
-
-        return JSON.parse(text.trim());
-    } catch (error) {
-        console.error("Error generating GST JSON with Gemini:", error);
-        throw error;
+    // Remove markdown formatting if present
+    if (text.startsWith("\`\`\`json")) {
+      text = text.substring(7);
     }
+    if (text.startsWith("\`\`\`")) {
+      text = text.substring(3);
+    }
+    if (text.endsWith("\`\`\`")) {
+      text = text.substring(0, text.length - 3);
+    }
+
+    return JSON.parse(text.trim());
+  } catch (error) {
+    console.error("Error generating GST JSON with Gemini:", error);
+    throw error;
+  }
 };
