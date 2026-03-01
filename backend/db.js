@@ -4,15 +4,18 @@ dotenv.config();
 
 // Create a connection pool instead of a single connection
 // This is better for web servers to handle multiple concurrent requests
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'taxflow_db',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+// Allows connection string or individual param config
+const pool = process.env.sql_connection
+    ? mysql.createPool(process.env.sql_connection.replace(/"/g, ''))
+    : mysql.createPool({
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'taxflow_db',
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+    });
 
 // Simple query to test the connection immediately on startup
 const testConnection = async () => {
