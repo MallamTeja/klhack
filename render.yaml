@@ -4,13 +4,14 @@ services:
     name: taxflow-backend
     env: node
     buildCommand: npm install
-    startCommand: npm run server
+    startCommand: node backend/server.js
     envVars:
       - key: PORT
         value: 5000
-      - key: MONGODB_URL
+      - key: MONGODB_URI
         sync: false
-        # Ensure to set this variable manually in the Render Dashboard
+      - key: geminiapi
+        sync: false
 
   # Frontend Static Site
   - type: web
@@ -20,4 +21,4 @@ services:
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
-        value: https://taxflow-backend.onrender.com # Adjust if actual URL changes
+        value: https://taxflow-backend.onrender.com/api # User should update this after backend deployment

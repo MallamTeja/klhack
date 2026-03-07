@@ -1,55 +1,53 @@
-import pool from '../db.js';
+import mongoose from 'mongoose';
 
-const Invoice = {
-    async findByBusinessId(businessId) {
-        const [invoices] = await pool.execute('SELECT * FROM invoices WHERE business_id = ?', [businessId]);
+const invoiceItemSchema = new mongoose.Schema({
+    description: String,
+    quantity: Number,
+    price: Number,
+    tax_rate: Number
+});
 
-        for (let inv of invoices) {
-            const [items] = await pool.execute('SELECT * FROM invoice_items WHERE invoice_id = ?', [inv.id]);
-            inv.items = items;
-
-            // Handle parsing raw_image_urls JSON payload
-            if (typeof inv.raw_image_urls === 'string') {
-                try {
-                    inv.raw_image_urls = JSON.parse(inv.raw_image_urls);
-                } catch (e) {
-                    inv.raw_image_urls = [];
-                }
-            } else if (!inv.raw_image_urls) {
-                inv.raw_image_urls = [];
-            }
-        }
-        return invoices;
+const invoiceSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-
-    async create(data) {
-        const conn = await pool.getConnection();
-        try {
-            await conn.beginTransaction();
-            const [result] = await conn.execute(
-                'INSERT INTO invoices (user_id, business_id, ctin, inum, date, pos, raw_image_urls) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [data.user_id, data.business_id, data.ctin || null, data.inum, data.date, data.pos, JSON.stringify(data.raw_image_urls || [])]
-            );
-            const invoiceId = result.insertId;
-
-            if (data.items && data.items.length) {
-                for (let item of data.items) {
-                    await conn.execute(
-                        'INSERT INTO invoice_items (invoice_id, description, quantity, price, tax_rate) VALUES (?, ?, ?, ?, ?)',
-                        [invoiceId, item.description, item.quantity, item.price, item.tax_rate]
-                    );
-                }
-            }
-
-            await conn.commit();
-            return { id: invoiceId };
-        } catch (error) {
-            await conn.rollback();
-            throw error;
-        } finally {
-            conn.release();
-        }
+    business_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BusinessProfile',
+        required: true
+    },
+    ctin: String,
+    inum: {
+        type: String,
+        required: true
+    },
+    date: {
+        type: String,
+        required: true
+    },
+    pos: String,
+    raw_image_urls: {
+        type: [String],
+        default: []
+    },
+    items: [invoiceItemSchema],
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
+});
+
+invoiceSchema.statics.findByBusinessId = function (businessId) {
+    return this.find({ business_id: businessId });
 };
+
+invoiceSchema.statics.create = async function (data) {
+    const invoice = new this(data);
+    return invoice.save();
+};
+
+const Invoice = mongoose.model('Invoice', invoiceSchema);
 
 export default Invoice;

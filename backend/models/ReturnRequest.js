@@ -1,26 +1,51 @@
-import pool from '../db.js';
+import mongoose from 'mongoose';
 
-const ReturnRequest = {
-    async findById(id) {
-        const [rows] = await pool.execute('SELECT * FROM return_requests WHERE id = ?', [id]);
-        return rows.length ? rows[0] : null;
+const returnRequestSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-
-    async updateResult(id, status, jsonResult) {
-        await pool.execute(
-            'UPDATE return_requests SET status = ?, json_result = ? WHERE id = ?',
-            [status, JSON.stringify(jsonResult), id]
-        );
+    business_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'BusinessProfile',
+        required: true
     },
-
-    async create(data) {
-        const { user_id, business_id, ret_period } = data;
-        const [result] = await pool.execute(
-            'INSERT INTO return_requests (user_id, business_id, ret_period) VALUES (?, ?, ?)',
-            [user_id, business_id, ret_period]
-        );
-        return this.findById(result.insertId);
+    ret_period: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        default: 'PENDING'
+    },
+    json_result: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
+});
+
+returnRequestSchema.statics.findById = function (id) {
+    return this.findOne({ _id: id });
 };
+
+returnRequestSchema.statics.updateResult = async function (id, status, jsonResult) {
+    return this.findOneAndUpdate(
+        { _id: id },
+        { status, json_result: jsonResult },
+        { new: true }
+    );
+};
+
+returnRequestSchema.statics.create = async function (data) {
+    const request = new this(data);
+    return request.save();
+};
+
+const ReturnRequest = mongoose.model('ReturnRequest', returnRequestSchema);
 
 export default ReturnRequest;

@@ -8,7 +8,12 @@ const router = express.Router();
 
 // POST /api/return
 router.post('/', async (req, res) => {
-    res.status(200).json({ status: "ok", message: "Create return request stub" });
+    try {
+        const returnReq = await ReturnRequest.create(req.body);
+        res.status(201).json({ status: "ok", returnReq });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // POST /api/return/:id/generate-json

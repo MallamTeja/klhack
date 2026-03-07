@@ -1,35 +1,25 @@
-import mysql from 'mysql2/promise';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Create a connection pool instead of a single connection
-// This is better for web servers to handle multiple concurrent requests
-// Allows connection string or individual param config
-const pool = process.env.sql_connection
-    ? mysql.createPool(process.env.sql_connection.replace(/"/g, ''))
-    : mysql.createPool({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'taxflow_db',
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0
-    });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// Simple query to test the connection immediately on startup
-const testConnection = async () => {
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/taxflow';
+
+const connectDB = async () => {
     try {
-        const connection = await pool.getConnection();
-        console.log(`MySQL Connected: ${process.env.DB_HOST || 'localhost'} / ${process.env.DB_NAME || 'taxflow_db'}`);
-        connection.release();
+        await mongoose.connect(MONGODB_URI);
+        console.log(`MongoDB Connected: ${mongoose.connection.host}`);
     } catch (error) {
-        console.error(`MySQL connection error: ${error.message}`);
-        console.error('Check your .env file for DB_HOST, DB_USER, DB_PASSWORD, DB_NAME');
+        console.error(`MongoDB connection error: ${error.message}`);
         process.exit(1);
     }
 };
 
-testConnection();
+connectDB();
 
-export default pool;
+export default mongoose;
+

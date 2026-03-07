@@ -1,0 +1,32 @@
+{
+    "version": 2,
+    "name": "gst-filing-agent",
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/dist"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "http://localhost:5000/api/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/$1",
+            "continue": true
+        },
+        {
+            "handle": "filesystem"
+        },
+        {
+            "src": "/(.*)",
+            "status": 200,
+            "dest": "/index.html"
+        }
+    ]
+}
