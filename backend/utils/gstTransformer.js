@@ -55,6 +55,9 @@ Here is the input data you must transform (business profile and invoices):
 {{INPUT_DATA_JSON}}`;
 
 export const generateGSTReturnJSON = async (businessData, invoicesData) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] [Gemini API] Request initiated: Generating GST Return JSON...`);
+
   try {
     const inputData = {
       businessProfile: businessData,
@@ -63,26 +66,29 @@ export const generateGSTReturnJSON = async (businessData, invoicesData) => {
     const inputStr = JSON.stringify(inputData, null, 2);
     const prompt = PROMPT_TEMPLATE.replace("{{INPUT_DATA_JSON}}", inputStr);
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // or "gemini-pro"
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // or "gemini-pro"
 
     const result = await model.generateContent(prompt);
     const response = result.response;
     let text = response.text();
 
     // Remove markdown formatting if present
-    if (text.startsWith("\`\`\`json")) {
+    if (text.startsWith("```json")) {
       text = text.substring(7);
     }
-    if (text.startsWith("\`\`\`")) {
+    if (text.startsWith("```")) {
       text = text.substring(3);
     }
-    if (text.endsWith("\`\`\`")) {
+    if (text.endsWith("```")) {
       text = text.substring(0, text.length - 3);
     }
 
-    return JSON.parse(text.trim());
+    const parsedJson = JSON.parse(text.trim());
+    console.log(`[${new Date().toISOString()}] [Gemini API] Success: GST Return JSON generated successfully.`);
+    return parsedJson;
   } catch (error) {
-    console.error("Error generating GST JSON with Gemini:", error);
+    console.error(`[${new Date().toISOString()}] [Gemini API] Error: Failed to generate GST JSON.`);
+    console.error(`Details: ${error.message}`);
     throw error;
   }
 };

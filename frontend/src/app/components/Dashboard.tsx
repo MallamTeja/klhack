@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Upload, Calendar, FileText, TrendingUp, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { Button } from "./ui/button";
@@ -5,21 +6,57 @@ import { Card } from "./ui/card";
 import { Progress } from "./ui/progress";
 
 export function Dashboard() {
-  // Mock data - in production, fetch from MongoDB via MONGODB_URL
-  const stats = {
-    receiptsThisMonth: 23,
-    totalSaved: "₹45,230",
-    complianceScore: 100,
-    nextDeadline: "March 20, 2026",
-  };
+  const [stats, setStats] = useState({
+    receiptsThisMonth: 0,
+    totalSaved: "₹0",
+    complianceScore: 0,
+    nextDeadline: "Calculating...",
+  });
 
-  const recentActivity = [
-    { date: "Feb 25, 2026", action: "Uploaded 5 receipts", status: "completed" },
-    { date: "Feb 20, 2026", action: "Generated summary for January", status: "completed" },
-    { date: "Feb 15, 2026", action: "Exported filing documents", status: "completed" },
-  ];
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const now = new Date();
+  const deadlineDate = new Date(now.getFullYear(), now.getMonth() + 1, 20);
+  const daysRemaining = Math.max(0, Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem("taxflow_token");
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        const statsRes = await fetch('/api/return/stats', { headers });
+        const statsData = await statsRes.json();
+        setStats(statsData);
+
+        const activityRes = await fetch('/api/return', { headers });
+        const activityData = await activityRes.json();
+        const formattedActivity = activityData.slice(0, 3).map((item: any) => ({
+          date: new Date(item.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
+          action: `Filing for ${item.ret_period} ${item.status.toLowerCase()}`,
+          status: item.status.toLowerCase() === 'completed' ? 'completed' : 'pending'
+        }));
+        setRecentActivity(formattedActivity);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
 
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8B4513]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -55,7 +92,9 @@ export function Dashboard() {
             <CheckCircle2 className="size-4 text-[#8B4513]" />
           </div>
           <p className="text-2xl font-bold text-[#8B4513]">{stats.complianceScore}%</p>
-          <p className="text-xs text-[#8B4513] mt-1">You're 100% compliant! 🎉</p>
+          <p className="text-xs text-[#8B4513] mt-1">
+            {stats.complianceScore === 100 ? "You're 100% compliant! 🎉" : "Action required for compliance"}
+          </p>
         </Card>
 
         <Card className="p-4 border-l-4 border-l-[#8B4513] bg-white/80 backdrop-blur-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
@@ -64,7 +103,7 @@ export function Dashboard() {
             <Clock className="size-4 text-[#8B4513]" />
           </div>
           <p className="text-lg font-bold text-[#8B4513]">{stats.nextDeadline}</p>
-          <p className="text-xs text-[#8B4513] mt-1">21 days remaining</p>
+          <p className="text-xs text-[#8B4513] mt-1">{daysRemaining} days remaining</p>
         </Card>
       </div>
 

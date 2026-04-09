@@ -96,11 +96,50 @@ export function Upload() {
 
   const completedCount = files.filter((f) => f.status === "completed").length;
 
-  const handleManualSubmit = (e: React.FormEvent) => {
+  const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Save manual invoice data to MongoDB
-    localStorage.setItem("manual_invoice", JSON.stringify(manualData));
-    navigate("/preview");
+    try {
+      const token = localStorage.getItem("taxflow_token");
+      // Fetch business profile (assuming first one for now)
+      const busRes = await fetch('/api/business', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const busData = await busRes.json();
+      const firstBus = busData[0];
+
+      if (!firstBus) {
+        alert("Please complete your profile first");
+        return;
+      }
+
+      const response = await fetch('/api/invoice', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          business_id: firstBus._id,
+          ctin: manualData.gstin,
+          inum: manualData.invoiceNumber,
+          date: manualData.invoiceDate,
+          items: [{
+            description: "Manual Entry",
+            quantity: 1,
+            price: parseFloat(manualData.billAmount),
+            tax_rate: 18 // Default tax rate
+          }]
+        }),
+      });
+
+      if (response.ok) {
+        navigate("/preview");
+      } else {
+        alert("Failed to save invoice");
+      }
+    } catch (error) {
+      console.error("Manual submit error:", error);
+    }
   };
 
   return (
@@ -116,21 +155,19 @@ export function Upload() {
       <div className="flex gap-4 mb-8">
         <Button
           onClick={() => setMode("upload")}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            mode === "upload"
+          className={`px-6 py-2 rounded-lg font-semibold transition-all ${mode === "upload"
               ? "bg-[#8B4513] hover:bg-[#723A0F] text-white"
               : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-          }`}
+            }`}
         >
           Upload Invoice
         </Button>
         <Button
           onClick={() => setMode("manual")}
-          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
-            mode === "manual"
+          className={`px-6 py-2 rounded-lg font-semibold transition-all ${mode === "manual"
               ? "bg-[#8B4513] hover:bg-[#723A0F] text-white"
               : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-          }`}
+            }`}
         >
           Manual Entry
         </Button>

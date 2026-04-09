@@ -20,39 +20,36 @@ export function Preview() {
   const navigate = useNavigate();
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // Mock extracted data - in production, fetch from MongoDB via MONGODB_URL
-  const [extractedData, setExtractedData] = useState<ExtractedData[]>([
-    {
-      id: "1",
-      receiptNumber: "INV-2026-001",
-      vendor: "Sharma Electronics",
-      date: "2026-02-25",
-      amount: 12500,
-      gst: 2250,
-      category: "Equipment",
-      editable: false,
-    },
-    {
-      id: "2",
-      receiptNumber: "INV-2026-002",
-      vendor: "Office Supplies Co.",
-      date: "2026-02-23",
-      amount: 3400,
-      gst: 612,
-      category: "Supplies",
-      editable: false,
-    },
-    {
-      id: "3",
-      receiptNumber: "INV-2026-003",
-      vendor: "Tech Services Ltd",
-      date: "2026-02-20",
-      amount: 8900,
-      gst: 1602,
-      category: "Services",
-      editable: false,
-    },
-  ]);
+  const [extractedData, setExtractedData] = useState<ExtractedData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const token = localStorage.getItem("taxflow_token");
+        const res = await fetch('/api/invoice', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const formattedData = data.map((inv: any) => ({
+          id: inv._id,
+          receiptNumber: inv.inum,
+          vendor: inv.ctin || "Unknown Vendor", // ctin is used for counterparty
+          date: inv.date,
+          amount: inv.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0),
+          gst: inv.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity * item.tax_rate / 100), 0),
+          category: inv.items[0]?.description || "General",
+          editable: false
+        }));
+        setExtractedData(formattedData);
+      } catch (error) {
+        console.error("Error fetching invoices:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvoices();
+  }, []);
 
   const totalAmount = extractedData.reduce((sum, item) => sum + item.amount, 0);
   const totalGST = extractedData.reduce((sum, item) => sum + item.gst, 0);
@@ -90,6 +87,14 @@ export function Preview() {
       navigate("/export");
     }, 2000);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8B4513]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

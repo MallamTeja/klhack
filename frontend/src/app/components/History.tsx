@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, Download, Eye, Calendar, Search, Filter } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -18,50 +18,48 @@ interface FilingRecord {
 export function History() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filingHistory, setFilingHistory] = useState<FilingRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - in production, fetch from MongoDB via MONGODB_URL
-  const filingHistory: FilingRecord[] = [
-    {
-      id: "1",
-      month: "February",
-      year: 2026,
-      receipts: 23,
-      totalAmount: 24800,
-      gstAmount: 4464,
-      status: "completed",
-      filedDate: "2026-02-27",
-    },
-    {
-      id: "2",
-      month: "January",
-      year: 2026,
-      receipts: 18,
-      totalAmount: 19500,
-      gstAmount: 3510,
-      status: "completed",
-      filedDate: "2026-01-22",
-    },
-    {
-      id: "3",
-      month: "December",
-      year: 2025,
-      receipts: 31,
-      totalAmount: 42300,
-      gstAmount: 7614,
-      status: "completed",
-      filedDate: "2025-12-18",
-    },
-    {
-      id: "4",
-      month: "November",
-      year: 2025,
-      receipts: 15,
-      totalAmount: 16200,
-      gstAmount: 2916,
-      status: "completed",
-      filedDate: "2025-11-20",
-    },
-  ];
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem("taxflow_token");
+        const res = await fetch('/api/return', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        // Transform the backend data if necessary
+        // Extract month and year from ret_period (e.g., "022026") or use createdAt
+        const formattedData: FilingRecord[] = data.map((item: any) => {
+          const date = new Date(item.createdAt);
+          const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+          return {
+            id: item._id,
+            month: monthNames[date.getMonth()],
+            year: date.getFullYear(),
+            receipts: item.invoiceCount || 0,
+            totalAmount: item.totalAmount || 0,
+            gstAmount: item.gstAmount || 0,
+            status: item.status.toLowerCase() as any,
+            filedDate: item.createdAt
+          };
+        });
+
+        setFilingHistory(formattedData);
+      } catch (error) {
+        console.error("Error fetching history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
+
+  // Data is now fetched via useEffect
 
   const filteredHistory = filingHistory.filter((record) => {
     const matchesSearch = `${record.month} ${record.year}`.toLowerCase().includes(searchTerm.toLowerCase());
@@ -96,6 +94,14 @@ export function History() {
     // TODO: View detailed record
     alert(`Viewing record ${recordId}...`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8B4513]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

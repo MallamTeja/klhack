@@ -13,11 +13,26 @@ export function Login() {
         password: "",
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement actual login logic
-        localStorage.setItem("taxflow_user", JSON.stringify({ email: formData.email, businessName: "User" }));
-        navigate("/dashboard");
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+            const data = await response.json();
+            if (data.status === "ok") {
+                localStorage.setItem("taxflow_token", data.token);
+                localStorage.setItem("taxflow_user", JSON.stringify({ email: formData.email, userId: data.userId }));
+                navigate("/dashboard");
+            } else {
+                alert(data.error || "Login failed");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("An error occurred during login");
+        }
     };
 
     return (

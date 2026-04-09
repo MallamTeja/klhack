@@ -1,5 +1,5 @@
 import { User, Mail, Phone, FileText, Hash, Edit2, LogOut, Check, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Label } from "./ui/label";
@@ -11,16 +11,49 @@ export function Profile() {
 
     const handleLogout = () => {
         localStorage.removeItem("taxflow_user");
+        localStorage.removeItem("taxflow_token");
         navigate("/login");
     };
 
     const [user, setUser] = useState({
-        name: "ramu",
-        email: "ramu@gmail.com",
-        phone: "+91 9876543210",
-        gstin: "22AAAAA0000A1Z5",
-        invoiceNum: "INV-2024-001",
+        name: "Loading...",
+        email: "Loading...",
+        phone: "Loading...",
+        gstin: "Loading...",
+        invoiceNum: "0",
     });
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const token = localStorage.getItem("taxflow_token");
+                // Fetch business profile (assuming first one for now)
+                const busRes = await fetch('/api/business', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const busData = await busRes.json();
+
+                if (busData && busData.length > 0) {
+                    const firstBus = busData[0];
+                    const userLocal = JSON.parse(localStorage.getItem("taxflow_user") || "{}");
+                    setUser({
+                        name: firstBus.legal_name || userLocal.businessName || "Business User",
+                        email: userLocal.email || "user@example.com",
+                        phone: "+91 0000000000",
+                        gstin: firstBus.gstin,
+                        invoiceNum: "0", // Could be fetched from invoice count
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProfile();
+    }, []);
 
     const [editingField, setEditingField] = useState<keyof typeof user | null>(null);
     const [editValue, setEditValue] = useState("");

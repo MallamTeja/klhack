@@ -17,11 +17,52 @@ export function Onboarding() {
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // single page onboarding, save and redirect
-    localStorage.setItem("taxflow_user", JSON.stringify(formData));
-    navigate("/dashboard");
+    try {
+      // 1. Register
+      const regRes = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+      const regData = await regRes.json();
+
+      if (regData.status !== "ok") {
+        alert(regData.error || "Registration failed");
+        return;
+      }
+
+      // 2. Login to get token
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+      const loginData = await loginRes.json();
+
+      localStorage.setItem("taxflow_token", loginData.token);
+      localStorage.setItem("taxflow_user", JSON.stringify({ email: formData.email, userId: loginData.userId }));
+
+      // 3. Create Business Profile
+      await fetch('/api/business', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${loginData.token}`
+        },
+        body: JSON.stringify({
+          legal_name: formData.businessName,
+          gstin: "PENDING_" + Date.now(), // Placeholder for now
+          state_code: "27", // Default placeholder
+        }),
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Onboarding error:", error);
+      alert("An error occurred during onboarding");
+    }
   };
 
   return (

@@ -5,31 +5,60 @@ import { Card } from "./ui/card";
 
 export function Export() {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [stats, setStats] = useState({
+    receiptsThisMonth: 0,
+    totalSaved: "₹0",
+    complianceScore: 0,
+    nextDeadline: "Calculating..."
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("taxflow_token");
+        const res = await fetch('/api/return/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setStats(data);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const now = new Date();
+  const currentMonth = now.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+  const deadlineDate = new Date(now.getFullYear(), now.getMonth() + 1, 20);
+  const deadlineStr = deadlineDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const handleDownload = (format: string) => {
-    // TODO: Generate document via API with API_KEY
-    // const response = await fetch('/api/export', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({ format, month: 'February 2026' })
-    // });
-
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
 
-    // Simulate download
+    // Simulate download with dynamic filename
     const link = document.createElement("a");
     link.href = "#";
-    link.download = `TaxFlow_Summary_Feb2026.${format}`;
+    const filenameMonth = now.toLocaleString('en-IN', { month: 'short', year: 'numeric' }).replace(' ', '');
+    link.download = `TaxFlow_Summary_${filenameMonth}.${format}`;
     link.click();
   };
 
   const handleEmail = () => {
-    // TODO: Send via email API
-    alert("Summary will be sent to your registered email address!");
+    alert(`Summary for ${currentMonth} will be sent to your registered email address!`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8B4513]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -40,10 +69,10 @@ export function Export() {
             <CheckCircle2 className="size-12 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-[#8B4513] mb-2">
-            🎉 You're 100% Compliant!
+            🎉 You're {stats.complianceScore}% Compliant!
           </h1>
           <p className="text-lg text-[#8B4513]">
-            Your tax summary for February 2026 is ready to download
+            Your tax summary for {currentMonth} is ready
           </p>
         </div>
       </Card>
@@ -64,7 +93,7 @@ export function Export() {
               PDF Summary Report
             </h3>
             <p className="text-sm text-gray-600">
-              Complete filing summary with all receipts and calculations
+              Complete filing summary for {currentMonth}
             </p>
           </button>
 
@@ -113,7 +142,7 @@ export function Export() {
       <Card className="p-6 mb-8 bg-white/80 backdrop-blur-md shadow-lg border-white/20">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-[#8B4513]">
-            Summary Preview - February 2026
+            Summary Preview
           </h2>
           <Button
             variant="outline"
@@ -128,24 +157,23 @@ export function Export() {
         <div className="space-y-4">
           <div className="grid md:grid-cols-2 gap-6 p-4 bg-[#FFCCBC]/20 rounded-lg">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Sales</p>
-              <p className="text-2xl font-bold text-[#8B4513]">₹24,800</p>
+              <p className="text-sm text-gray-600 mb-1">Total Savings</p>
+              <p className="text-2xl font-bold text-[#8B4513]">{stats.totalSaved}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total GST Collected</p>
-              <p className="text-2xl font-bold text-[#8B4513]">₹4,464</p>
+              <p className="text-sm text-gray-600 mb-1">Receipts Processed</p>
+              <p className="text-2xl font-bold text-[#8B4513]">{stats.receiptsThisMonth}</p>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Input Credit Available</p>
-              <p className="text-2xl font-bold text-green-600">₹4,464</p>
+              <p className="text-sm text-gray-600 mb-1">Compliance Score</p>
+              <p className="text-2xl font-bold text-green-600">{stats.complianceScore}%</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Net Tax Liability</p>
-              <p className="text-2xl font-bold text-green-600">₹0</p>
-              <p className="text-xs text-green-600 mt-1">Fully offset by input credit!</p>
+              <p className="text-sm text-gray-600 mb-1">Next Deadline</p>
+              <p className="text-2xl font-bold text-green-600">{stats.nextDeadline}</p>
             </div>
           </div>
 
@@ -154,15 +182,15 @@ export function Export() {
             <div className="grid md:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-gray-600">Period</p>
-                <p className="font-medium">February 2026</p>
+                <p className="font-medium">{currentMonth}</p>
               </div>
               <div>
                 <p className="text-gray-600">Total Receipts</p>
-                <p className="font-medium">23 documents</p>
+                <p className="font-medium">{stats.receiptsThisMonth} documents</p>
               </div>
               <div>
                 <p className="text-gray-600">Due Date</p>
-                <p className="font-medium">March 20, 2026</p>
+                <p className="font-medium">{deadlineStr}</p>
               </div>
             </div>
           </div>
@@ -191,7 +219,7 @@ export function Export() {
             <div>
               <p className="font-medium">Review before submission</p>
               <p className="text-sm text-[#FFCCBC]">
-                Double-check all amounts and details
+                Double-check all amounts and details for {currentMonth}
               </p>
             </div>
           </div>
@@ -202,7 +230,7 @@ export function Export() {
             <div>
               <p className="font-medium">Submit to GST portal</p>
               <p className="text-sm text-[#FFCCBC]">
-                Upload the JSON file to the government portal before March 20
+                Upload the JSON file to the government portal before {deadlineStr}
               </p>
             </div>
           </div>
